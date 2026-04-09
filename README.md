@@ -92,16 +92,32 @@ bash slurm/run_all_overnight.sh
 
 This chains: robust training -> attacks on robust model + grad-cam -> plots.
 
+## Results Summary
+
+### Baseline Model
+- Clean test accuracy: **99.59%**
+- PGD (eps=0.01) drops it to **8.5%**
+- FGSM (eps=0.005) drops it to **53.1%**
+- JPEG Q=10 drops it to **52.0%**
+
+### Robust Model (Adversarial Training)
+- Clean test accuracy: **98.92%** (small drop)
+- PGD (eps=0.01): **46.6%** (up from 8.5%)
+- FGSM (eps=0.08): **39.8%** (up from 11.5%)
+- Downscale 4x: **68.1%** (up from 59.7%)
+
+Adversarial training helps a lot against PGD but both models still break at high attack strengths.
+
 ## Progress
 
 - [x] Project setup and data pipeline
 - [x] Baseline model — ResNet-18, 99.59% test accuracy
-- [ ] Image degradation attacks
-- [ ] Adversarial attacks (FGSM, PGD)
-- [ ] Adversarial training
-- [ ] Grad-CAM visualization
-- [ ] Comparison plots
-- [ ] Final results
+- [x] Image degradation attacks
+- [x] Adversarial attacks (FGSM, PGD)
+- [x] Adversarial training — 98.92% clean, much better under attack
+- [x] Grad-CAM visualization
+- [x] Comparison plots
+- [ ] Final report
 
 ## Tools
 
