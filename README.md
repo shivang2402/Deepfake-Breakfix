@@ -108,6 +108,21 @@ This chains: robust training -> attacks on robust model + grad-cam -> plots.
 
 Adversarial training helps a lot against PGD but both models still break at high attack strengths.
 
+## Advanced Extensions
+
+- EfficientNet-B0 baseline for architecture comparison
+- Black-box transferability (attack one model, fool another)
+- Fine-grained epsilon sweeps + C&W L2 attack + EOT attack
+- Frequency-domain analysis (FFT of real vs fake)
+- Ensemble defense (ResNet + EfficientNet combined)
+- AFSL defense (feature similarity learning, Goswami et al. 2024)
+
+See [docs/advanced-extensions.md](docs/advanced-extensions.md) for details.
+
+```bash
+bash slurm/run_all_advanced.sh
+```
+
 ## Progress
 
 - [x] Project setup and data pipeline
@@ -117,6 +132,7 @@ Adversarial training helps a lot against PGD but both models still break at high
 - [x] Adversarial training — 98.92% clean, much better under attack
 - [x] Grad-CAM visualization
 - [x] Comparison plots
+- [ ] Advanced extensions (EfficientNet, transferability, C&W, EOT, frequency, ensemble, AFSL)
 - [ ] Final report
 
 ## Tools
