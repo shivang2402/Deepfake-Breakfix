@@ -23,8 +23,8 @@ env/
 checkpoints/
 
 # Data
-data/
-datasets/
+/data/
+/datasets/
 *.tar.gz
 *.zip
 
@@ -46,7 +46,7 @@ logs/
 runs/
 wandb/
 outputs/
-results/
+# results/ — tracked, but large outputs ignored via specific patterns
 *.log
 
 # Large files

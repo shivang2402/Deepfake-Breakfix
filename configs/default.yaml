@@ -1,0 +1,43 @@
+data:
+  dataset: "140k-real-fake"  # or "faceforensics"
+  data_dir: "data/"
+  image_size: 224
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  batch_size: 32
+  num_workers: 4
+
+model:
+  architecture: "resnet18"  # or "efficientnet_b0"
+  pretrained: true
+  num_classes: 2
+  freeze_backbone: false
+
+training:
+  epochs: 20
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  scheduler: "cosine"
+  early_stopping_patience: 5
+
+attacks:
+  jpeg_quality: [10, 20, 30, 40, 50, 60, 70, 80, 90]
+  gaussian_noise_sigma: [0.01, 0.02, 0.05, 0.1, 0.15, 0.2]
+  gaussian_blur_kernel: [3, 5, 7, 9, 11]
+  downscale_factors: [2, 4, 8]
+  fgsm_epsilon: [0.005, 0.01, 0.02, 0.04, 0.08]
+  pgd_epsilon: [0.005, 0.01, 0.02, 0.04, 0.08]
+  pgd_steps: 10
+  pgd_alpha: 0.005
+
+adversarial_training:
+  mix_ratio: 0.5  # fraction of adversarial examples in each batch
+  attack: "pgd"
+  epsilon: 0.02
+  epochs: 20
+
+output:
+  checkpoint_dir: "checkpoints/"
+  results_dir: "results/"
+  log_dir: "logs/"
