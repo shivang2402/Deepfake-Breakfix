@@ -35,6 +35,14 @@ pip install -r requirements.txt
 
 Check [docs/setup.md](docs/setup.md) for dataset download and environment setup.
 
+## Training
+
+```bash
+python train_baseline.py
+```
+
+See [docs/baseline-model.md](docs/baseline-model.md) for model details.
+
 ## Dataset
 
 [140k Real and Fake Faces](https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces) from Kaggle.
