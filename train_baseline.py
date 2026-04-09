@@ -39,7 +39,7 @@ def main():
     # evaluate on test set
     print("\nTest set results:")
     # load best checkpoint
-    model.load_state_dict(torch.load(f"checkpoints/best_{arch}.pth", map_location=device))
+    model.load_state_dict(torch.load(f"checkpoints/best_{arch}.pth", map_location=device, weights_only=True))
     model.to(device)
     metrics = evaluate_model(model, loaders["test"], device)
     print_metrics(metrics)

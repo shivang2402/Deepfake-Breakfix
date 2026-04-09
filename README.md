@@ -53,10 +53,22 @@ See [docs/baseline-model.md](docs/baseline-model.md) for model details.
 | Valid | 10k | 10k | 20k |
 | Test  | 10k | 10k | 20k |
 
+## Attacks
+
+After training, we attack the model with:
+- **Degradations**: JPEG compression, Gaussian noise, Gaussian blur, downscale/upscale
+- **Adversarial**: FGSM and PGD with epsilon sweeps
+
+```bash
+python run_attacks.py
+```
+
+See [docs/attacks.md](docs/attacks.md) for details.
+
 ## Progress
 
 - [x] Project setup and data pipeline
-- [ ] Baseline model (ResNet-18 / EfficientNet-B0)
+- [x] Baseline model — ResNet-18, 99.59% test accuracy
 - [ ] Image degradation attacks
 - [ ] Adversarial attacks (FGSM, PGD)
 - [ ] Adversarial training
