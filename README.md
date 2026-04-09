@@ -11,7 +11,6 @@ Most deepfake detectors do well on clean images but fall apart when you throw re
 ```
 ├── configs/default.yaml       # all hyperparams and attack sweep ranges
 ├── docs/                      # setup guide, data pipeline docs
-├── notebooks/                 # exploratory stuff
 ├── results/
 │   ├── plots/                 # degradation curves
 │   ├── tables/                # metric tables
@@ -65,6 +64,34 @@ python run_attacks.py
 
 See [docs/attacks.md](docs/attacks.md) for details.
 
+## Defense
+
+Retrain the model with a mix of clean + PGD adversarial examples. See [docs/defense.md](docs/defense.md).
+
+```bash
+python train_robust.py
+python run_attacks_robust.py
+```
+
+## Visualization
+
+Grad-CAM heatmaps and comparison plots. See [docs/gradcam.md](docs/gradcam.md).
+
+```bash
+python run_gradcam.py
+python run_plots.py
+```
+
+## Running on Cluster (SLURM)
+
+Submit the full overnight pipeline:
+
+```bash
+bash slurm/run_all_overnight.sh
+```
+
+This chains: robust training -> attacks on robust model + grad-cam -> plots.
+
 ## Progress
 
 - [x] Project setup and data pipeline
@@ -73,6 +100,7 @@ See [docs/attacks.md](docs/attacks.md) for details.
 - [ ] Adversarial attacks (FGSM, PGD)
 - [ ] Adversarial training
 - [ ] Grad-CAM visualization
+- [ ] Comparison plots
 - [ ] Final results
 
 ## Tools
