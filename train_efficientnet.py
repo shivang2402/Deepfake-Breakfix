@@ -26,6 +26,7 @@ def main():
     )
 
     # override arch to efficientnet
+    config["model"]["architecture"] = "efficientnet_b0"
     print("Training efficientnet_b0...")
     model = get_model(arch="efficientnet_b0", num_classes=config["model"]["num_classes"])
 
