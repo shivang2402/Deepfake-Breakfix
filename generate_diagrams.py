@@ -1,283 +1,421 @@
-"""Generate all architecture and pipeline diagrams for the report."""
+"""Generate architecture and pipeline diagrams."""
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+import matplotlib.patches as patches
 import os
 
 
-def draw_pipeline_overview(save_path):
-    """Full project pipeline diagram."""
-    fig, ax = plt.subplots(1, 1, figsize=(16, 10))
+def make_box(ax, x, y, w, h, text, color="#E3F2FD", fontsize=9, border="#333"):
+    rect = patches.FancyBboxPatch(
+        (x, y), w, h, boxstyle="round,pad=0.12",
+        facecolor=color, edgecolor=border, linewidth=1.5
+    )
+    ax.add_patch(rect)
+    ax.text(x + w / 2, y + h / 2, text, ha="center", va="center",
+            fontsize=fontsize, fontweight="bold", linespacing=1.4)
+
+
+def h_arrow(ax, x1, x2, y):
+    ax.annotate("", xy=(x2, y), xytext=(x1, y),
+                arrowprops=dict(arrowstyle="-|>", color="#444", lw=1.5))
+
+
+def v_arrow(ax, x, y1, y2):
+    ax.annotate("", xy=(x, y2), xytext=(x, y1),
+                arrowprops=dict(arrowstyle="-|>", color="#444", lw=1.5))
+
+
+def l_arrow_down_right(ax, x1, y1, x2, y2):
+    """L-shaped: go down then right."""
+    ax.plot([x1, x1], [y1, y2], color="#444", lw=1.5)
+    ax.annotate("", xy=(x2, y2), xytext=(x1, y2),
+                arrowprops=dict(arrowstyle="-|>", color="#444", lw=1.5))
+
+
+def l_arrow_down_left(ax, x1, y1, x2, y2):
+    """L-shaped: go down then left."""
+    ax.plot([x1, x1], [y1, y2], color="#444", lw=1.5)
+    ax.annotate("", xy=(x2, y2), xytext=(x1, y2),
+                arrowprops=dict(arrowstyle="-|>", color="#444", lw=1.5))
+
+
+def row_separator(ax, y, x1, x2):
+    """Draw a wide horizontal arrow spanning the row."""
+    ax.annotate("", xy=(x2, y), xytext=(x1, y),
+                arrowprops=dict(arrowstyle="-|>", color="#999", lw=2,
+                                linestyle="--"))
+
+
+def draw_pipeline_overview(path):
+    fig, ax = plt.subplots(figsize=(16, 12))
     ax.set_xlim(0, 16)
+    ax.set_ylim(0, 12)
+    ax.axis("off")
+    fig.patch.set_facecolor("white")
+
+    ax.text(8, 11.5, "Project Pipeline", ha="center", fontsize=16, fontweight="bold")
+
+    # 4 columns: x = 1.5, 5.0, 8.5, 12.0  width = 3.0
+    cx = [1.5, 5.0, 8.5, 12.0]
+    bw = 3.0
+
+    # --- ROW 1: DATA & MODEL ---
+    r1y = 9.5
+    rh = 1.3
+    ax.text(0.15, r1y + rh / 2, "DATA &\nMODEL", fontsize=9, fontweight="bold",
+            color="#1565C0", va="center", ha="center")
+
+    make_box(ax, cx[0], r1y, bw, rh, "Dataset\n140k Real & Fake\n50k/50k, 10k/10k", "#E3F2FD", 9, "#1565C0")
+    make_box(ax, cx[1], r1y, bw, rh, "Preprocessing\nResize 224x224\nNormalize, Augment", "#E3F2FD", 9, "#1565C0")
+    make_box(ax, cx[2], r1y, bw, rh, "Train Models\nResNet-18\nEfficientNet-B0", "#E3F2FD", 9, "#1565C0")
+    make_box(ax, cx[3], r1y, bw, rh, "Evaluate\nAcc, Precision\nRecall, F1", "#E3F2FD", 9, "#1565C0")
+
+    for i in range(3):
+        h_arrow(ax, cx[i] + bw, cx[i + 1], r1y + rh / 2)
+
+    # row connector: wide dashed arrow spanning all 4 columns
+    conn_y = r1y - 0.5
+    ax.plot([1.5, 15], [conn_y, conn_y], color="#999", lw=1, linestyle="--")
+    ax.plot([8, 8], [conn_y, conn_y - 0.3], color="#444", lw=1.5)
+    ax.annotate("", xy=(8, conn_y - 0.6), xytext=(8, conn_y - 0.3),
+                arrowprops=dict(arrowstyle="-|>", color="#444", lw=1.5))
+
+    # --- ROW 2: ATTACKS ---
+    r2y = 7.0
+    ax.text(0.15, r2y + rh / 2, "ATTACKS", fontsize=9, fontweight="bold",
+            color="#C62828", va="center", ha="center")
+
+    make_box(ax, cx[0], r2y, bw, rh, "Degradations\nJPEG | Noise\nBlur | Downscale", "#FFEBEE", 9, "#C62828")
+    make_box(ax, cx[1], r2y, bw, rh, "Adversarial\nFGSM | PGD\nC&W | EOT-PGD", "#FFEBEE", 9, "#C62828")
+    make_box(ax, cx[2], r2y, bw, rh, "Transferability\nAttack model A\nTest on model B", "#FFEBEE", 9, "#C62828")
+    make_box(ax, cx[3], r2y, bw, rh, "Frequency\nFFT spectrum\nReal vs Fake", "#FFEBEE", 9, "#C62828")
+
+    # row connector
+    conn_y2 = r2y - 0.5
+    ax.plot([1.5, 15], [conn_y2, conn_y2], color="#999", lw=1, linestyle="--")
+    ax.plot([8, 8], [conn_y2, conn_y2 - 0.3], color="#444", lw=1.5)
+    ax.annotate("", xy=(8, conn_y2 - 0.6), xytext=(8, conn_y2 - 0.3),
+                arrowprops=dict(arrowstyle="-|>", color="#444", lw=1.5))
+
+    # --- ROW 3: DEFENSES ---
+    r3y = 4.5
+    ax.text(0.15, r3y + rh / 2, "DEFENSES", fontsize=9, fontweight="bold",
+            color="#2E7D32", va="center", ha="center")
+
+    make_box(ax, cx[0], r3y, bw, rh, "Adversarial Training\n50% clean + 50% PGD\nduring training", "#E8F5E9", 9, "#2E7D32")
+    make_box(ax, cx[1], r3y, bw, rh, "AFSL Defense\nFeature similarity\nclean = adversarial", "#E8F5E9", 9, "#2E7D32")
+    make_box(ax, cx[2], r3y, bw, rh, "Ensemble\nResNet + EfficientNet\navg predictions", "#E8F5E9", 9, "#2E7D32")
+    make_box(ax, cx[3], r3y, bw, rh, "Re-evaluate\nAll attacks on\nall defended models", "#F3E5F5", 9, "#7B1FA2")
+
+    for i in range(3):
+        h_arrow(ax, cx[i] + bw, cx[i + 1], r3y + rh / 2)
+
+    # row connector
+    conn_y3 = r3y - 0.5
+    ax.plot([1.5, 15], [conn_y3, conn_y3], color="#999", lw=1, linestyle="--")
+    ax.plot([8, 8], [conn_y3, conn_y3 - 0.3], color="#444", lw=1.5)
+    ax.annotate("", xy=(8, conn_y3 - 0.6), xytext=(8, conn_y3 - 0.3),
+                arrowprops=dict(arrowstyle="-|>", color="#444", lw=1.5))
+
+    # --- ROW 4: OUTPUT ---
+    r4y = 2.0
+    ax.text(0.15, r4y + rh / 2, "OUTPUT", fontsize=9, fontweight="bold",
+            color="#E65100", va="center", ha="center")
+
+    make_box(ax, cx[0], r4y, bw, rh, "Degradation Curves\nAccuracy vs\nattack intensity", "#FFFDE7", 9, "#F57F17")
+    make_box(ax, cx[1], r4y, bw, rh, "Comparison Charts\nBaseline vs Robust\nvs AFSL vs Ensemble", "#FFFDE7", 9, "#F57F17")
+    make_box(ax, cx[2], r4y, bw, rh, "Grad-CAM\nHeatmaps before\nand after attacks", "#FFFDE7", 9, "#F57F17")
+    make_box(ax, cx[3], r4y, bw, rh, "Frequency Plots\nSpectral difference\nreal vs fake", "#FFFDE7", 9, "#F57F17")
+
+    plt.savefig(path, dpi=150, bbox_inches="tight", facecolor="white")
+    plt.close()
+    print(f"Saved: {path}")
+
+
+def draw_resnet_arch(path):
+    fig, ax = plt.subplots(figsize=(15, 4))
+    ax.set_xlim(0, 15)
+    ax.set_ylim(0, 4)
+    ax.axis("off")
+    fig.patch.set_facecolor("white")
+
+    ax.text(7.5, 3.6, "ResNet-18 Architecture", ha="center", fontsize=14, fontweight="bold")
+
+    bw, bh, by, gap = 1.7, 2.2, 0.7, 0.3
+    colors = ["#E3F2FD", "#BBDEFB", "#90CAF9", "#64B5F6", "#42A5F5", "#1E88E5", "#FFF3E0"]
+    texts = [
+        "Input\n3 x 224 x 224",
+        "Conv1\n7x7, 64\nMaxPool",
+        "Layer 1\n2 blocks\n64 ch, 56x56",
+        "Layer 2\n2 blocks\n128 ch, 28x28",
+        "Layer 3\n2 blocks\n256 ch, 14x14",
+        "Layer 4\n2 blocks\n512 ch, 7x7",
+        "Head\nAvgPool\nFC 512 -> 2",
+    ]
+
+    for i in range(7):
+        x = 0.5 + i * (bw + gap)
+        make_box(ax, x, by, bw, bh, texts[i], colors[i], 8.5)
+        if i == 5:
+            ax.texts[-1].set_color("white")
+        if i > 0:
+            h_arrow(ax, 0.5 + (i - 1) * (bw + gap) + bw, x, by + bh / 2)
+
+    x6 = 0.5 + 5 * (bw + gap)
+    ax.annotate("Grad-CAM\ntargets here",
+                xy=(x6 + bw / 2, by + bh),
+                xytext=(x6 + bw + 0.8, by + bh + 0.6),
+                fontsize=8, ha="center", color="#C62828", fontweight="bold",
+                arrowprops=dict(arrowstyle="-|>", color="#C62828", lw=1.5))
+
+    ax.text(7.5, 0.25, "ImageNet pretrained  ->  FC layer swapped  ->  fine-tuned on 140k faces",
+            ha="center", fontsize=9, color="#666")
+
+    plt.savefig(path, dpi=150, bbox_inches="tight", facecolor="white")
+    plt.close()
+    print(f"Saved: {path}")
+
+
+def draw_efficientnet_arch(path):
+    fig, ax = plt.subplots(figsize=(15, 4))
+    ax.set_xlim(0, 15)
+    ax.set_ylim(0, 4)
+    ax.axis("off")
+    fig.patch.set_facecolor("white")
+
+    ax.text(7.5, 3.6, "EfficientNet-B0 Architecture", ha="center", fontsize=14, fontweight="bold")
+
+    bw, bh, by, gap = 1.7, 2.2, 0.7, 0.3
+    colors = ["#E8F5E9", "#C8E6C9", "#A5D6A7", "#81C784", "#66BB6A", "#4CAF50", "#FFF3E0"]
+    texts = [
+        "Input\n3 x 224 x 224",
+        "Stem\n3x3 Conv, 32\nBN + Swish",
+        "MBConv1\n3x3, 16 ch\nSE, x1",
+        "MBConv6\n3x3, 24 ch\nSE, x2",
+        "MBConv6\n5x5, 40-112\nSE, x6",
+        "MBConv6\n5x5, 192-320\nSE, x5",
+        "Head\n1x1 Conv\nFC -> 2",
+    ]
+
+    for i in range(7):
+        x = 0.5 + i * (bw + gap)
+        make_box(ax, x, by, bw, bh, texts[i], colors[i], 8.5)
+        if i == 5:
+            ax.texts[-1].set_color("white")
+        if i > 0:
+            h_arrow(ax, 0.5 + (i - 1) * (bw + gap) + bw, x, by + bh / 2)
+
+    ax.text(7.5, 0.25, "Compound scaling (depth x width x resolution)  ->  classifier swapped to 2 classes",
+            ha="center", fontsize=9, color="#666")
+
+    plt.savefig(path, dpi=150, bbox_inches="tight", facecolor="white")
+    plt.close()
+    print(f"Saved: {path}")
+
+
+def draw_attack_pipeline(path):
+    fig, ax = plt.subplots(figsize=(15, 10))
+    ax.set_xlim(0, 15)
     ax.set_ylim(0, 10)
     ax.axis("off")
+    fig.patch.set_facecolor("white")
 
-    # title
-    ax.text(8, 9.5, "Project Pipeline Overview", ha="center", fontsize=16, fontweight="bold")
+    ax.text(7.5, 9.5, "Attack Evaluation Pipeline", ha="center", fontsize=15, fontweight="bold")
 
-    # boxes
-    boxes = [
-        # (x, y, w, h, label, color)
-        (0.5, 7.5, 3, 1.2, "Dataset\n140k Real & Fake Faces\n(50k/50k train, 10k/10k test)", "#E3F2FD"),
-        (4.5, 7.5, 3, 1.2, "Preprocessing\nResize 224x224\nNormalize (ImageNet)\nAugmentation (train)", "#E8F5E9"),
-        (8.5, 7.5, 3, 1.2, "Baseline Training\nResNet-18\nEfficientNet-B0\nAdam + Cosine LR", "#FFF3E0"),
-        (12.5, 7.5, 3, 1.2, "Baseline Eval\nAccuracy, Precision\nRecall, F1\nConfusion Matrix", "#F3E5F5"),
+    # step 1: test set (centered)
+    s1x, s1w, s1y, s1h = 4.5, 6, 8.0, 1
+    make_box(ax, s1x, s1y, s1w, s1h, "Step 1: Test Set\n20,000 images (10k fake + 10k real)", "#E3F2FD", 10, "#1565C0")
 
-        # attack row
-        (0.5, 5, 3.5, 1.2, "Image Degradations\nJPEG, Noise, Blur\nDownscale/Upscale", "#FFEBEE"),
-        (4.5, 5, 3.5, 1.2, "Adversarial Attacks\nFGSM, PGD, C&W\nEOT-PGD", "#FFEBEE"),
-        (9, 5, 3, 1.2, "Transferability\nAttack ResNet\nTest on EfficientNet\n& vice versa", "#FFEBEE"),
-        (12.5, 5, 3, 1.2, "Frequency Analysis\nFFT Spectrum\nReal vs Fake", "#FFEBEE"),
+    # step 2: three attack boxes
+    s2y = 5.5
+    s2h = 1.8
+    s2w = 4.2
+    # box centers (x midpoints)
+    b1_cx = 0.5 + s2w / 2     # 2.6
+    b2_cx = 5.4 + s2w / 2     # 7.5
+    b3_cx = 10.3 + s2w / 2    # 12.4
 
-        # defense row
-        (0.5, 2.5, 3, 1.2, "Adversarial Training\nMix clean + PGD\n50/50 ratio", "#E8F5E9"),
-        (4.5, 2.5, 3, 1.2, "AFSL Defense\nFeature Similarity\nLearning", "#E8F5E9"),
-        (8.5, 2.5, 3, 1.2, "Ensemble Defense\nResNet + EfficientNet\nAvg Softmax", "#E8F5E9"),
-        (12.5, 2.5, 3, 1.2, "Re-evaluate\nAll attacks on\nall defenses", "#F3E5F5"),
+    # T-junction: vertical from step1 center, horizontal bar, verticals into boxes
+    junction_y = 7.6
+    ax.plot([7.5, 7.5], [s1y, junction_y], color="#444", lw=1.5)  # down from step1
+    ax.plot([b1_cx, b3_cx], [junction_y, junction_y], color="#444", lw=1.5)  # horizontal bar
+    # vertical lines down to box tops (no arrowhead artifacts — use plain lines + triangle)
+    for bx in [b1_cx, b2_cx, b3_cx]:
+        ax.plot([bx, bx], [junction_y, s2y + s2h + 0.05], color="#444", lw=1.5)
+        # small triangle arrowhead
+        ax.plot(bx, s2y + s2h + 0.05, marker="v", color="#444", markersize=6)
 
-        # results
-        (4, 0.5, 8, 1.2, "Results: Degradation Curves | Comparison Plots | Grad-CAM Heatmaps | Frequency Plots", "#FFFDE7"),
+    make_box(ax, 0.5, s2y, s2w, s2h,
+             "Step 2a: Degradations\n\nJPEG (Q = 10 to 90)\nGaussian noise (s = 0.01 to 0.2)\nGaussian blur (k = 3 to 11)\nDownscale (2x, 4x, 8x)",
+             "#FFEBEE", 8.5, "#C62828")
+
+    make_box(ax, 5.4, s2y, s2w, s2h,
+             "Step 2b: Adversarial\n\nFGSM (e = 0.001 to 0.08)\nPGD 10-step (e = 0.001 to 0.08)\nC&W L2 (c = 0.1 to 10)\nEOT-PGD (e = 0.01 to 0.08)",
+             "#FFEBEE", 8.5, "#C62828")
+
+    make_box(ax, 10.3, s2y, s2w, s2h,
+             "Step 2c: Transferability\n\nAttack ResNet-18,\ntest on EfficientNet-B0\n\nAttack EfficientNet-B0,\ntest on ResNet-18",
+             "#FFEBEE", 8.5, "#C62828")
+
+    # merge: lines from box bottom centers, horizontal bar, single arrow down
+    merge_y = 5.0
+    for bx in [b1_cx, b2_cx, b3_cx]:
+        ax.plot([bx, bx], [s2y, merge_y], color="#444", lw=1.5)
+    ax.plot([b1_cx, b3_cx], [merge_y, merge_y], color="#444", lw=1.5)
+    ax.plot([7.5, 7.5], [merge_y, 4.3], color="#444", lw=1.5)
+    ax.plot(7.5, 4.3, marker="v", color="#444", markersize=6)
+
+    # step 3: model
+    make_box(ax, 2.5, 3.0, 10, 1.2,
+             "Step 3: Run Through Model\nBaseline (ResNet-18)  |  Adversarial Training  |  AFSL  |  Ensemble",
+             "#FFF3E0", 10, "#E65100")
+
+    # T-junction from step3 to step4a and step4b
+    s4_jy = 2.5
+    ax.plot([7.5, 7.5], [3.0, s4_jy], color="#444", lw=1.5)
+    ax.plot([4.25, 10.75], [s4_jy, s4_jy], color="#444", lw=1.5)
+    # arrows down to 4a and 4b
+    ax.plot([4.25, 4.25], [s4_jy, 2.05], color="#444", lw=1.5)
+    ax.plot(4.25, 2.05, marker="v", color="#444", markersize=6)
+    ax.plot([10.75, 10.75], [s4_jy, 2.05], color="#444", lw=1.5)
+    ax.plot(10.75, 2.05, marker="v", color="#444", markersize=6)
+
+    # step 4: two boxes side by side
+    make_box(ax, 1.5, 0.7, 5.5, 1.3,
+             "Step 4a: Metrics\nAccuracy, Precision, Recall, F1\nConfusion matrix per setting",
+             "#E8F5E9", 9, "#2E7D32")
+    make_box(ax, 8, 0.7, 5.5, 1.3,
+             "Step 4b: Visualize\nDegradation curves, Comparison plots\nGrad-CAM heatmaps",
+             "#E8F5E9", 9, "#2E7D32")
+
+    plt.savefig(path, dpi=150, bbox_inches="tight", facecolor="white")
+    plt.close()
+    print(f"Saved: {path}")
+
+
+def draw_defense_comparison(path):
+    fig, ax = plt.subplots(figsize=(16, 7))
+    ax.set_xlim(0, 16)
+    ax.set_ylim(0, 7)
+    ax.axis("off")
+    fig.patch.set_facecolor("white")
+
+    ax.text(8, 6.5, "Defense Strategies Comparison", ha="center", fontsize=15, fontweight="bold")
+
+    cw = 3.5
+    ch = 5.2
+    cy = 0.8
+    gap = 0.4
+
+    cols = [
+        ("No Defense\n(Baseline)", "#FFCDD2", "#C62828",
+         ["Clean: 99.59%", "", "FGSM e=0.005: 53%", "PGD e=0.01: 8.5%", "PGD e=0.02: 0.8%",
+          "", "Completely broken"]),
+        ("Adversarial\nTraining", "#C8E6C9", "#2E7D32",
+         ["Clean: 98.92% (-0.7%)", "", "PGD e=0.01: 46.6%", "FGSM e=0.08: 39.8%",
+          "", "Big improvement", "Simple to implement"]),
+        ("AFSL\n(Feature Similarity)", "#C8E6C9", "#2E7D32",
+         ["Expected clean: ~97%", "", "Expected PGD: ~70%+", "(Goswami et al. 2024)",
+          "", "Strongest defense", "2x compute per batch"]),
+        ("Ensemble\n(ResNet + EffNet)", "#C8E6C9", "#2E7D32",
+         ["Expected clean: ~99%", "", "Harder to fool both", "architectures at once",
+          "", "No retraining needed", "2x inference cost"]),
     ]
 
-    for x, y, w, h, label, color in boxes:
-        rect = mpatches.FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.1",
-                                        facecolor=color, edgecolor="#333", linewidth=1.5)
+    for i, (title, bg, border, lines) in enumerate(cols):
+        x = 0.4 + i * (cw + gap)
+
+        # main box
+        rect = patches.FancyBboxPatch(
+            (x, cy), cw, ch, boxstyle="round,pad=0.15",
+            facecolor=bg, edgecolor=border, linewidth=2
+        )
         ax.add_patch(rect)
-        ax.text(x + w/2, y + h/2, label, ha="center", va="center", fontsize=8, fontweight="bold")
 
-    # row labels
-    ax.text(0.1, 8.1, "DATA & MODEL", fontsize=9, fontweight="bold", color="#1565C0", rotation=90, va="center")
-    ax.text(0.1, 5.6, "ATTACKS", fontsize=9, fontweight="bold", color="#C62828", rotation=90, va="center")
-    ax.text(0.1, 3.1, "DEFENSES", fontsize=9, fontweight="bold", color="#2E7D32", rotation=90, va="center")
-    ax.text(0.1, 1.1, "OUTPUT", fontsize=9, fontweight="bold", color="#F57F17", rotation=90, va="center")
+        # title area
+        ax.text(x + cw / 2, cy + ch - 0.55, title, ha="center", va="center",
+                fontsize=10, fontweight="bold", color=border)
 
-    # arrows between rows
-    for x in [2, 6, 10, 14]:
-        ax.annotate("", xy=(x, 7.5), xytext=(x, 6.3),
-                    arrowprops=dict(arrowstyle="->", color="#666", lw=1.5))
-    for x in [2, 6, 10]:
-        ax.annotate("", xy=(x, 5), xytext=(x, 3.8),
-                    arrowprops=dict(arrowstyle="->", color="#666", lw=1.5))
-    ax.annotate("", xy=(8, 2.5), xytext=(8, 1.8),
-                arrowprops=dict(arrowstyle="->", color="#666", lw=1.5))
+        # divider line
+        div_y = cy + ch - 1.1
+        ax.plot([x + 0.2, x + cw - 0.2], [div_y, div_y], color=border, lw=1, alpha=0.5)
 
-    plt.tight_layout()
-    plt.savefig(save_path, dpi=150, bbox_inches="tight")
+        # content lines
+        for j, line in enumerate(lines):
+            ax.text(x + 0.3, div_y - 0.35 - j * 0.45, line, fontsize=9)
+
+    plt.savefig(path, dpi=150, bbox_inches="tight", facecolor="white")
     plt.close()
-    print(f"Saved: {save_path}")
+    print(f"Saved: {path}")
 
 
-def draw_resnet_arch(save_path):
-    """ResNet-18 architecture for deepfake detection."""
-    fig, ax = plt.subplots(1, 1, figsize=(14, 5))
+def draw_adversarial_training_flow(path):
+    fig, ax = plt.subplots(figsize=(14, 5))
     ax.set_xlim(0, 14)
     ax.set_ylim(0, 5)
     ax.axis("off")
+    fig.patch.set_facecolor("white")
 
-    ax.text(7, 4.5, "ResNet-18 for Deepfake Detection", ha="center", fontsize=14, fontweight="bold")
+    ax.text(7, 4.6, "Adversarial Training Flow", ha="center", fontsize=14, fontweight="bold")
 
-    layers = [
-        (0.5, 1.5, 1.5, 2, "Input\n3x224x224", "#E3F2FD"),
-        (2.5, 1.5, 1.5, 2, "Conv1\n7x7, 64\nBN + ReLU\nMaxPool", "#BBDEFB"),
-        (4.5, 1.5, 1.5, 2, "Layer1\n2 blocks\n64 filters\nResidual", "#90CAF9"),
-        (6.5, 1.5, 1.5, 2, "Layer2\n2 blocks\n128 filters\nResidual", "#64B5F6"),
-        (8.5, 1.5, 1.5, 2, "Layer3\n2 blocks\n256 filters\nResidual", "#42A5F5"),
-        (10.5, 1.5, 1.5, 2, "Layer4\n2 blocks\n512 filters\nResidual", "#2196F3"),
-        (12.5, 1.5, 1.5, 2, "AvgPool\nFC 512→2\nFake/Real", "#FFF3E0"),
-    ]
+    # input batch
+    make_box(ax, 0.3, 1.7, 2, 1.3, "Training Batch\n(32 images)", "#E3F2FD", 10, "#1565C0")
 
-    for x, y, w, h, label, color in layers:
-        rect = mpatches.FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.1",
-                                        facecolor=color, edgecolor="#333", linewidth=1.5)
-        ax.add_patch(rect)
-        ax.text(x + w/2, y + h/2, label, ha="center", va="center", fontsize=7.5, fontweight="bold")
+    # split: horizontal line right, then T-junction up and down
+    split_x = 3.0
+    ax.plot([2.3, split_x], [2.35, 2.35], color="#444", lw=1.5)
+    ax.plot([split_x, split_x], [1.35, 3.35], color="#444", lw=1.5)
 
-    # arrows
-    for i in range(len(layers) - 1):
-        x1 = layers[i][0] + layers[i][2]
-        x2 = layers[i+1][0]
-        y = layers[i][1] + layers[i][3] / 2
-        ax.annotate("", xy=(x2, y), xytext=(x1, y),
-                    arrowprops=dict(arrowstyle="->", color="#333", lw=1.5))
+    # top path: clean
+    ax.plot([split_x, 3.8], [3.35, 3.35], color="#444", lw=1.5)
+    ax.annotate("", xy=(3.8, 3.35), xytext=(3.5, 3.35),
+                arrowprops=dict(arrowstyle="-|>", color="#444", lw=1.5))
+    make_box(ax, 3.8, 2.7, 2.2, 1.2, "50% Clean\n(unchanged)", "#E8F5E9", 10, "#2E7D32")
 
-    ax.text(7, 0.8, "Pretrained on ImageNet → Fine-tuned on 140k Real & Fake Faces",
-            ha="center", fontsize=10, style="italic", color="#666")
+    # bottom path: adversarial
+    ax.plot([split_x, 3.8], [1.35, 1.35], color="#444", lw=1.5)
+    ax.annotate("", xy=(3.8, 1.35), xytext=(3.5, 1.35),
+                arrowprops=dict(arrowstyle="-|>", color="#444", lw=1.5))
+    make_box(ax, 3.8, 0.7, 2.2, 1.2, "50% PGD\nAttacked\n(e = 0.02)", "#FFEBEE", 10, "#C62828")
 
-    plt.tight_layout()
-    plt.savefig(save_path, dpi=150, bbox_inches="tight")
-    plt.close()
-    print(f"Saved: {save_path}")
+    # merge: both paths go right to a junction, then into combined
+    merge_x = 6.8
+    ax.plot([6.0, merge_x], [3.3, 3.3], color="#444", lw=1.5)
+    ax.plot([6.0, merge_x], [1.3, 1.3], color="#444", lw=1.5)
+    ax.plot([merge_x, merge_x], [1.3, 3.3], color="#444", lw=1.5)
+    ax.plot([merge_x, 7.5], [2.3, 2.3], color="#444", lw=1.5)
+    ax.annotate("", xy=(7.5, 2.3), xytext=(7.2, 2.3),
+                arrowprops=dict(arrowstyle="-|>", color="#444", lw=1.5))
 
+    make_box(ax, 7.5, 1.7, 2, 1.3, "Combined\nBatch\n(mixed)", "#FFF3E0", 10, "#E65100")
 
-def draw_efficientnet_arch(save_path):
-    """EfficientNet-B0 architecture."""
-    fig, ax = plt.subplots(1, 1, figsize=(14, 5))
-    ax.set_xlim(0, 14)
-    ax.set_ylim(0, 5)
-    ax.axis("off")
-
-    ax.text(7, 4.5, "EfficientNet-B0 for Deepfake Detection", ha="center", fontsize=14, fontweight="bold")
-
-    layers = [
-        (0.3, 1.5, 1.5, 2, "Input\n3x224x224", "#E8F5E9"),
-        (2.1, 1.5, 1.5, 2, "Stem\n3x3 Conv\n32 filters\nBN+Swish", "#C8E6C9"),
-        (3.9, 1.5, 1.5, 2, "MBConv1\n3x3, 16\nSE block\nx1", "#A5D6A7"),
-        (5.7, 1.5, 1.5, 2, "MBConv6\n3x3, 24\nSE block\nx2", "#81C784"),
-        (7.5, 1.5, 1.5, 2, "MBConv6\n5x5, 40-112\nSE block\nx6", "#66BB6A"),
-        (9.3, 1.5, 1.5, 2, "MBConv6\n5x5, 192-320\nSE block\nx5", "#4CAF50"),
-        (11.1, 1.5, 1.5, 2, "Head\n1x1 Conv\nAvgPool\nFC→2", "#FFF3E0"),
-    ]
-
-    for x, y, w, h, label, color in layers:
-        rect = mpatches.FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.1",
-                                        facecolor=color, edgecolor="#333", linewidth=1.5)
-        ax.add_patch(rect)
-        ax.text(x + w/2, y + h/2, label, ha="center", va="center", fontsize=7.5, fontweight="bold")
-
-    for i in range(len(layers) - 1):
-        x1 = layers[i][0] + layers[i][2]
-        x2 = layers[i+1][0]
-        y = layers[i][1] + layers[i][3] / 2
-        ax.annotate("", xy=(x2, y), xytext=(x1, y),
-                    arrowprops=dict(arrowstyle="->", color="#333", lw=1.5))
-
-    ax.text(7, 0.8, "Compound scaling (depth, width, resolution) — Pretrained on ImageNet",
-            ha="center", fontsize=10, style="italic", color="#666")
-
-    plt.tight_layout()
-    plt.savefig(save_path, dpi=150, bbox_inches="tight")
-    plt.close()
-    print(f"Saved: {save_path}")
-
-
-def draw_attack_pipeline(save_path):
-    """Attack evaluation pipeline diagram."""
-    fig, ax = plt.subplots(1, 1, figsize=(14, 8))
-    ax.set_xlim(0, 14)
-    ax.set_ylim(0, 8)
-    ax.axis("off")
-
-    ax.text(7, 7.5, "Attack Evaluation Pipeline", ha="center", fontsize=14, fontweight="bold")
-
-    # input
-    ax.add_patch(mpatches.FancyBboxPatch((5.5, 6.2), 3, 0.9, boxstyle="round,pad=0.1",
-                                          facecolor="#E3F2FD", edgecolor="#333", linewidth=1.5))
-    ax.text(7, 6.65, "Test Set (20k images)", ha="center", va="center", fontsize=9, fontweight="bold")
-
-    # degradation branch
-    deg_attacks = ["JPEG (Q=10-90)", "Noise (σ=0.01-0.2)", "Blur (k=3-11)", "Downscale (2x-8x)"]
-    ax.add_patch(mpatches.FancyBboxPatch((0.5, 3.5), 4, 2.2, boxstyle="round,pad=0.1",
-                                          facecolor="#FFEBEE", edgecolor="#C62828", linewidth=1.5))
-    ax.text(2.5, 5.4, "Image Degradations", ha="center", fontsize=10, fontweight="bold", color="#C62828")
-    for i, atk in enumerate(deg_attacks):
-        ax.text(2.5, 5.0 - i * 0.4, f"• {atk}", ha="center", fontsize=8)
-
-    # adversarial branch
-    adv_attacks = ["FGSM (ε=0.001-0.08)", "PGD (ε=0.001-0.08)", "C&W L2 (c=0.1-10)", "EOT-PGD (ε=0.01-0.08)"]
-    ax.add_patch(mpatches.FancyBboxPatch((5.5, 3.5), 4, 2.2, boxstyle="round,pad=0.1",
-                                          facecolor="#FFEBEE", edgecolor="#C62828", linewidth=1.5))
-    ax.text(7.5, 5.4, "Adversarial Attacks", ha="center", fontsize=10, fontweight="bold", color="#C62828")
-    for i, atk in enumerate(adv_attacks):
-        ax.text(7.5, 5.0 - i * 0.4, f"• {atk}", ha="center", fontsize=8)
-
-    # transferability
-    ax.add_patch(mpatches.FancyBboxPatch((10.5, 3.5), 3, 2.2, boxstyle="round,pad=0.1",
-                                          facecolor="#FFEBEE", edgecolor="#C62828", linewidth=1.5))
-    ax.text(12, 5.4, "Transferability", ha="center", fontsize=10, fontweight="bold", color="#C62828")
-    ax.text(12, 4.8, "• ResNet→EfficientNet", ha="center", fontsize=8)
-    ax.text(12, 4.4, "• EfficientNet→ResNet", ha="center", fontsize=8)
-    ax.text(12, 4.0, "• PGD + FGSM", ha="center", fontsize=8)
-
-    # arrows from test set
-    ax.annotate("", xy=(2.5, 5.7), xytext=(5.5, 6.2),
-                arrowprops=dict(arrowstyle="->", color="#666", lw=1.5))
-    ax.annotate("", xy=(7, 5.7), xytext=(7, 6.2),
-                arrowprops=dict(arrowstyle="->", color="#666", lw=1.5))
-    ax.annotate("", xy=(12, 5.7), xytext=(8.5, 6.2),
-                arrowprops=dict(arrowstyle="->", color="#666", lw=1.5))
-
-    # model box
-    ax.add_patch(mpatches.FancyBboxPatch((3, 1.5), 4, 1.2, boxstyle="round,pad=0.1",
-                                          facecolor="#FFF3E0", edgecolor="#333", linewidth=1.5))
-    ax.text(5, 2.1, "Model Under Test\nBaseline | Robust (AT) | AFSL | Ensemble",
-            ha="center", va="center", fontsize=8, fontweight="bold")
-
-    # metrics box
-    ax.add_patch(mpatches.FancyBboxPatch((8, 1.5), 4.5, 1.2, boxstyle="round,pad=0.1",
-                                          facecolor="#E8F5E9", edgecolor="#333", linewidth=1.5))
-    ax.text(10.25, 2.1, "Metrics\nAccuracy, Precision, Recall, F1\nConfusion Matrix, Degradation Curves",
-            ha="center", va="center", fontsize=8, fontweight="bold")
-
-    # arrows
-    ax.annotate("", xy=(5, 2.7), xytext=(5, 3.5),
-                arrowprops=dict(arrowstyle="->", color="#666", lw=1.5))
-    ax.annotate("", xy=(8, 2.1), xytext=(7, 2.1),
-                arrowprops=dict(arrowstyle="->", color="#666", lw=1.5))
+    # train
+    h_arrow(ax, 9.5, 10.2, 2.35)
+    make_box(ax, 10.2, 1.7, 1.8, 1.3, "Train\n(backprop)", "#E3F2FD", 10, "#1565C0")
 
     # output
-    ax.add_patch(mpatches.FancyBboxPatch((3, 0.2), 9.5, 0.8, boxstyle="round,pad=0.1",
-                                          facecolor="#FFFDE7", edgecolor="#333", linewidth=1.5))
-    ax.text(7.75, 0.6, "Output: JSON results + Degradation plots + Comparison charts + Grad-CAM heatmaps",
-            ha="center", va="center", fontsize=8, fontweight="bold")
+    h_arrow(ax, 12.0, 12.5, 2.35)
+    make_box(ax, 12.5, 1.7, 1.3, 1.3, "Robust\nModel", "#C8E6C9", 10, "#2E7D32")
 
-    ax.annotate("", xy=(7.75, 1.0), xytext=(7.75, 1.5),
-                arrowprops=dict(arrowstyle="->", color="#666", lw=1.5))
+    # labels
+    ax.text(3.0, 3.7, "split", fontsize=8, ha="center", color="#666")
+    ax.text(6.8, 3.6, "merge", fontsize=8, ha="center", color="#666")
 
-    plt.tight_layout()
-    plt.savefig(save_path, dpi=150, bbox_inches="tight")
+    ax.text(7, 0.15, "Model sees both clean and attacked images during training -> learns harder-to-fool features",
+            ha="center", fontsize=9, color="#555")
+
+    plt.savefig(path, dpi=150, bbox_inches="tight", facecolor="white")
     plt.close()
-    print(f"Saved: {save_path}")
-
-
-def draw_defense_comparison(save_path):
-    """Defense strategies comparison diagram."""
-    fig, ax = plt.subplots(1, 1, figsize=(14, 6))
-    ax.set_xlim(0, 14)
-    ax.set_ylim(0, 6)
-    ax.axis("off")
-
-    ax.text(7, 5.5, "Defense Strategies", ha="center", fontsize=14, fontweight="bold")
-
-    defenses = [
-        (0.5, 1, 3, 3.5, "Adversarial Training\n(AT)", "#E8F5E9",
-         ["Mix 50% clean + 50% PGD", "during training", "",
-          "Clean acc: ~98.9%", "PGD ε=0.01: ~46.6%", "",
-          "Simple but effective", "Some clean acc drop"]),
-        (4, 1, 3, 3.5, "AFSL\n(Feature Similarity)", "#E8F5E9",
-         ["Train features to be", "similar for clean &", "adversarial inputs",
-          "Expected clean: ~96-97%", "Expected PGD: ~70%+", "",
-          "Stronger than AT", "More compute needed"]),
-        (7.5, 1, 3, 3.5, "Ensemble\n(ResNet + EfficientNet)", "#E8F5E9",
-         ["Average softmax from", "two architectures", "",
-          "Harder to fool both", "at same time", "",
-          "No retraining needed", "2x inference cost"]),
-        (11, 1, 2.5, 3.5, "No Defense\n(Baseline)", "#FFEBEE",
-         ["Clean acc: 99.59%", "FGSM ε=0.005: 53%", "PGD ε=0.01: 8.5%", "",
-          "Completely broken", "by adversarial", "attacks"]),
-    ]
-
-    for x, y, w, h, title, color, lines in defenses:
-        rect = mpatches.FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.1",
-                                        facecolor=color, edgecolor="#333", linewidth=1.5)
-        ax.add_patch(rect)
-        ax.text(x + w/2, y + h - 0.3, title, ha="center", va="center", fontsize=9, fontweight="bold")
-        for i, line in enumerate(lines):
-            ax.text(x + w/2, y + h - 0.7 - i * 0.35, line, ha="center", fontsize=7)
-
-    plt.tight_layout()
-    plt.savefig(save_path, dpi=150, bbox_inches="tight")
-    plt.close()
-    print(f"Saved: {save_path}")
+    print(f"Saved: {path}")
 
 
 def main():
     os.makedirs("results/diagrams", exist_ok=True)
-
     draw_pipeline_overview("results/diagrams/pipeline_overview.png")
     draw_resnet_arch("results/diagrams/resnet18_architecture.png")
     draw_efficientnet_arch("results/diagrams/efficientnet_b0_architecture.png")
     draw_attack_pipeline("results/diagrams/attack_pipeline.png")
     draw_defense_comparison("results/diagrams/defense_comparison.png")
-
+    draw_adversarial_training_flow("results/diagrams/adversarial_training_flow.png")
     print("\nAll diagrams generated in results/diagrams/")
 
 
