@@ -1,0 +1,122 @@
+{
+  "resnet_to_effnet": {
+    "0.001": {
+      "source_acc": 0.5524,
+      "target_acc": 0.7242
+    },
+    "0.003": {
+      "source_acc": 0.4479,
+      "target_acc": 0.7141
+    },
+    "0.005": {
+      "source_acc": 0.3299,
+      "target_acc": 0.7066
+    },
+    "0.01": {
+      "source_acc": 0.10965,
+      "target_acc": 0.6884
+    },
+    "0.02": {
+      "source_acc": 0.01155,
+      "target_acc": 0.6437
+    },
+    "0.04": {
+      "source_acc": 0.00065,
+      "target_acc": 0.51415
+    },
+    "0.08": {
+      "source_acc": 0.0001,
+      "target_acc": 0.3199
+    }
+  },
+  "effnet_to_resnet": {
+    "0.001": {
+      "source_acc": 0.5746,
+      "target_acc": 0.61835
+    },
+    "0.003": {
+      "source_acc": 0.2685,
+      "target_acc": 0.6107
+    },
+    "0.005": {
+      "source_acc": 0.1276,
+      "target_acc": 0.60485
+    },
+    "0.01": {
+      "source_acc": 0.0292,
+      "target_acc": 0.60115
+    },
+    "0.02": {
+      "source_acc": 0.00415,
+      "target_acc": 0.5904
+    },
+    "0.04": {
+      "source_acc": 0.0001,
+      "target_acc": 0.5793
+    },
+    "0.08": {
+      "source_acc": 0.0,
+      "target_acc": 0.5448
+    }
+  },
+  "fgsm_resnet_to_effnet": {
+    "0.001": {
+      "source_acc": 0.59755,
+      "target_acc": 0.72445
+    },
+    "0.003": {
+      "source_acc": 0.55205,
+      "target_acc": 0.71495
+    },
+    "0.005": {
+      "source_acc": 0.52045,
+      "target_acc": 0.70455
+    },
+    "0.01": {
+      "source_acc": 0.4667,
+      "target_acc": 0.67935
+    },
+    "0.02": {
+      "source_acc": 0.3843,
+      "target_acc": 0.63455
+    },
+    "0.04": {
+      "source_acc": 0.27675,
+      "target_acc": 0.55735
+    },
+    "0.08": {
+      "source_acc": 0.1837,
+      "target_acc": 0.49495
+    }
+  },
+  "fgsm_effnet_to_resnet": {
+    "0.001": {
+      "source_acc": 0.65945,
+      "target_acc": 0.6193
+    },
+    "0.003": {
+      "source_acc": 0.50175,
+      "target_acc": 0.6107
+    },
+    "0.005": {
+      "source_acc": 0.3953,
+      "target_acc": 0.60205
+    },
+    "0.01": {
+      "source_acc": 0.26795,
+      "target_acc": 0.5826
+    },
+    "0.02": {
+      "source_acc": 0.17775,
+      "target_acc": 0.55015
+    },
+    "0.04": {
+      "source_acc": 0.1297,
+      "target_acc": 0.50595
+    },
+    "0.08": {
+      "source_acc": 0.18445,
+      "target_acc": 0.44465
+    }
+  }
+}

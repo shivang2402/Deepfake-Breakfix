@@ -10,18 +10,19 @@ Most deepfake detectors do well on clean images but fall apart when you throw re
 
 ```
 ├── configs/default.yaml       # all hyperparams and attack sweep ranges
-├── docs/                      # setup guide, data pipeline docs
+├── docs/                      # setup guide, pipeline docs, architecture diagrams
 ├── results/
-│   ├── plots/                 # degradation curves
-│   ├── tables/                # metric tables
+│   ├── diagrams/              # architecture and pipeline diagrams
+│   ├── plots/                 # degradation curves, comparisons, frequency
+│   ├── tables/                # JSON results for all experiments
 │   └── gradcam/               # heatmap outputs
 ├── src/
 │   ├── data/                  # dataset + dataloader
-│   ├── models/                # model definitions
-│   ├── attacks/               # image degradation + adversarial attacks
-│   ├── defense/               # adversarial training
-│   ├── visualization/         # grad-cam, plots
-│   └── utils/                 # config, metrics, helpers
+│   ├── models/                # model definitions, training, evaluation
+│   ├── attacks/               # degradation, adversarial, EOT, C&W, frequency
+│   ├── defense/               # adversarial training, AFSL, ensemble
+│   └── visualization/         # grad-cam, plots
+├── slurm/                     # SLURM job scripts for HPC cluster
 ├── requirements.txt
 └── README.md
 ```
@@ -34,14 +35,6 @@ pip install -r requirements.txt
 
 Check [docs/setup.md](docs/setup.md) for dataset download and environment setup.
 
-## Training
-
-```bash
-python train_baseline.py
-```
-
-See [docs/baseline-model.md](docs/baseline-model.md) for model details.
-
 ## Dataset
 
 [140k Real and Fake Faces](https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces) from Kaggle.
@@ -52,87 +45,97 @@ See [docs/baseline-model.md](docs/baseline-model.md) for model details.
 | Valid | 10k | 10k | 20k |
 | Test  | 10k | 10k | 20k |
 
-## Attacks
+## Results
 
-After training, we attack the model with:
-- **Degradations**: JPEG compression, Gaussian noise, Gaussian blur, downscale/upscale
-- **Adversarial**: FGSM and PGD with epsilon sweeps
+### Baseline Models
 
-```bash
-python run_attacks.py
-```
+| Model | Clean Accuracy |
+|-------|---------------|
+| ResNet-18 | 99.56% |
+| EfficientNet-B0 | 99.88% |
 
-See [docs/attacks.md](docs/attacks.md) for details.
+### How badly do they break?
 
-## Defense
+**Adversarial attacks (on ResNet-18):**
 
-Retrain the model with a mix of clean + PGD adversarial examples. See [docs/defense.md](docs/defense.md).
+| Attack | eps=0.005 | eps=0.01 | eps=0.02 | eps=0.04 | eps=0.08 |
+|--------|-----------|----------|----------|----------|----------|
+| FGSM | 53.1% | 45.8% | 34.6% | 21.6% | 11.5% |
+| PGD | 30.8% | 8.5% | 0.8% | 0.06% | 0.01% |
+| C&W (c=1.0) | — | — | 1.8% | — | — |
 
-```bash
-python train_robust.py
-python run_attacks_robust.py
-```
+**Image degradations:**
 
-## Visualization
+| Attack | Accuracy |
+|--------|----------|
+| JPEG Q=10 | 52.0% |
+| JPEG Q=50 | 95.9% |
+| Noise σ=0.2 | 88.1% |
+| Downscale 8x | 50.0% (random) |
+| Blur k=11 | 97.8% |
 
-Grad-CAM heatmaps and comparison plots. See [docs/gradcam.md](docs/gradcam.md).
+### Do defenses help?
 
-```bash
-python run_gradcam.py
-python run_plots.py
-```
+| Defense | Clean | PGD eps=0.01 | FGSM eps=0.08 |
+|---------|-------|-------------|---------------|
+| No defense | 99.56% | 8.5% | 11.5% |
+| Adversarial training | 98.92% | 46.6% | 39.8% |
+| AFSL | 88.3% | 24.1% | 19.1% |
+| Ensemble (white-box) | ~99% | 10.4% | 19.1% |
+| Ensemble (black-box) | ~99% | 27.9% | — |
+
+Adversarial training is the best defense — big improvement with minimal clean accuracy drop.
+
+### Black-box transferability
+
+Attacks crafted for one model partially fool the other:
+
+| Attack crafted on | Source acc | Target acc |
+|-------------------|-----------|------------|
+| ResNet PGD eps=0.01 | 11.0% | 68.8% (effnet) |
+| ResNet PGD eps=0.04 | 0.06% | 51.4% (effnet) |
+| EfficientNet PGD eps=0.01 | 2.9% | 60.1% (resnet) |
+| EfficientNet PGD eps=0.04 | 0.01% | 57.9% (resnet) |
+
+Attacks do transfer but are much weaker on the target model — partial black-box threat.
+
+### Visualization
+
+- **Grad-CAM heatmaps** — baseline focuses on facial features; under PGD attack, attention becomes diffuse
+- **Frequency analysis** — real vs fake spectral differences visible in high-frequency range
+- **Architecture diagrams** — see [docs/architecture.md](docs/architecture.md)
+
+## Docs
+
+- [Setup guide](docs/setup.md)
+- [Data pipeline](docs/data-pipeline.md)
+- [Baseline model](docs/baseline-model.md)
+- [Attacks](docs/attacks.md)
+- [Defense](docs/defense.md)
+- [Grad-CAM & Plots](docs/gradcam.md)
+- [Advanced extensions](docs/advanced-extensions.md)
+- [Architecture diagrams](docs/architecture.md)
 
 ## Running on Cluster (SLURM)
 
-Submit the full overnight pipeline:
-
 ```bash
-bash slurm/run_all_overnight.sh
-```
-
-This chains: robust training -> attacks on robust model + grad-cam -> plots.
-
-## Results Summary
-
-### Baseline Model
-- Clean test accuracy: **99.59%**
-- PGD (eps=0.01) drops it to **8.5%**
-- FGSM (eps=0.005) drops it to **53.1%**
-- JPEG Q=10 drops it to **52.0%**
-
-### Robust Model (Adversarial Training)
-- Clean test accuracy: **98.92%** (small drop)
-- PGD (eps=0.01): **46.6%** (up from 8.5%)
-- FGSM (eps=0.08): **39.8%** (up from 11.5%)
-- Downscale 4x: **68.1%** (up from 59.7%)
-
-Adversarial training helps a lot against PGD but both models still break at high attack strengths.
-
-## Advanced Extensions
-
-- EfficientNet-B0 baseline for architecture comparison
-- Black-box transferability (attack one model, fool another)
-- Fine-grained epsilon sweeps + C&W L2 attack + EOT attack
-- Frequency-domain analysis (FFT of real vs fake)
-- Ensemble defense (ResNet + EfficientNet combined)
-- AFSL defense (feature similarity learning, Goswami et al. 2024)
-
-See [docs/advanced-extensions.md](docs/advanced-extensions.md) for details.
-
-```bash
-bash slurm/run_all_advanced.sh
+bash slurm/run_all_overnight.sh    # baseline pipeline
+bash slurm/run_all_advanced.sh     # advanced extensions
 ```
 
 ## Progress
 
 - [x] Project setup and data pipeline
-- [x] Baseline model — ResNet-18, 99.59% test accuracy
-- [x] Image degradation attacks
-- [x] Adversarial attacks (FGSM, PGD)
-- [x] Adversarial training — 98.92% clean, much better under attack
+- [x] Baseline models — ResNet-18 (99.56%), EfficientNet-B0 (99.88%)
+- [x] Image degradation attacks (JPEG, noise, blur, downscale)
+- [x] Adversarial attacks (FGSM, PGD, C&W, EOT-PGD)
+- [x] Adversarial training defense — 98.92% clean, PGD eps=0.01: 46.6%
+- [x] AFSL defense — 88.3% clean (needs tuning)
+- [x] Ensemble defense — helps in black-box, not white-box
+- [x] Black-box transferability testing
+- [x] Frequency-domain analysis
 - [x] Grad-CAM visualization
-- [x] Comparison plots
-- [ ] Advanced extensions (EfficientNet, transferability, C&W, EOT, frequency, ensemble, AFSL)
+- [x] Fine-grained epsilon sweeps
 - [ ] Final report
 
 ## Tools
