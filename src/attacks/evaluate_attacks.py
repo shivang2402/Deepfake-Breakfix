@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# Run attacks over an intensity sweep and collect metrics
+
 """Run attacks on test set and collect metrics at each intensity."""
 import torch
 from tqdm import tqdm

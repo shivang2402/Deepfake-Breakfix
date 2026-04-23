@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# Load pretrained ResNet 18 or EfficientNet B0 with a 2 way head
+
 import torch.nn as nn
 from torchvision import models
 

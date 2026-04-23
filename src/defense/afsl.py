@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# AFSL defense: train on clean and adversarial with feature similarity loss
+
 """Adversarial Feature Similarity Learning (AFSL).
 Based on Goswami et al. (arXiv:2403.08806).
 Train model so clean and adversarial versions produce similar features.

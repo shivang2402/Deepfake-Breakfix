@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# Softmax ensemble of two models
+
 """Ensemble defense — combine predictions from multiple models."""
 import torch
 import torch.nn.functional as F

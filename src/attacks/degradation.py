@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# Image degradation attacks: JPEG, Gaussian noise, blur, downscale
+
 """Image degradation attacks — JPEG compression, noise, blur, downscale/upscale."""
 import io
 import torch

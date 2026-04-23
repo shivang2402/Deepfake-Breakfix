@@ -1,0 +1,64 @@
+Name: Shivang Patel
+
+Time Travel Days: 0
+
+Project Description:
+Deepfake detectors reach 99 percent on clean test sets but their behavior under real world conditions is poorly understood. This project fine tunes ResNet 18 and EfficientNet B0 on the 140k Real and Fake Faces dataset, stress tests them with four image degradations (JPEG, noise, blur, downscaling) and four adversarial attacks (FGSM, PGD, Carlini and Wagner, EOT PGD), and evaluates three defenses (adversarial training, AFSL, and an ensemble). It also measures cross architecture black box transferability, runs frequency domain analysis on real vs fake images, and uses Grad CAM to visualize model attention before and after attack.
+
+Video URL: (TODO, upload to YouTube unlisted and paste link here)
+Dataset URL: https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces
+Report: report/report.pdf
+Code: https://github.com/shivang2402/Deepfake-Breakfix
+
+How to run (in order):
+  pip install -r requirements.txt              install dependencies
+  python3 train_baseline.py                    Train baseline ResNet 18
+  python3 train_efficientnet.py                Train EfficientNet B0 baseline
+  python3 run_attacks.py                       Run all attacks on baseline
+  python3 train_robust.py                      Train with adversarial training
+  python3 run_attacks_robust.py                Run attacks on robust model
+  python3 train_afsl.py                        Train with AFSL defense
+  python3 run_attacks_afsl.py                  Run attacks on AFSL model
+  python3 run_transferability.py               Cross architecture transfer tests
+  python3 run_ensemble.py                      Evaluate ensemble defense
+  python3 run_advanced_attacks.py              Fine eps + C&W + EOT PGD
+  python3 run_frequency_analysis.py            FFT of real vs fake
+  python3 run_gradcam.py                       Grad CAM heatmaps
+  python3 run_plots.py                         Generate all plots from JSON
+  python3 generate_diagrams.py                 Pipeline and architecture diagrams
+  python3 generate_report_images.py            Extra figures for the report
+
+Config: all hyperparameters and attack sweep ranges in configs/default.yaml
+Dataset location: data/real-vs-fake (symlink to Kaggle download)
+
+Dependencies: torch, torchvision, torchattacks, grad-cam, opencv-python, matplotlib, numpy, pandas, scikit-learn, Pillow, tqdm, pyyaml
+
+Cluster scripts:
+  bash slurm/run_all_overnight.sh              Baseline + degradations + adversarial training + Grad CAM + plots
+  bash slurm/run_all_advanced.sh               EfficientNet + advanced attacks + AFSL + transferability + ensemble + frequency
+
+Project structure:
+  src/data/            Dataset and dataloader
+  src/models/          ResNet 18 and EfficientNet B0, training, evaluation
+  src/attacks/         Degradation, adversarial, EOT, C&W, frequency
+  src/defense/         Adversarial training, AFSL, ensemble
+  src/visualization/   Grad CAM, plots
+  src/utils/           Config loader, metrics
+  configs/             YAML config files
+  slurm/               SLURM scripts for HPC
+  results/diagrams/    Architecture and pipeline diagrams
+  results/plots/       Degradation curves, comparison plots
+  results/gradcam/     Attention heatmaps
+  results/report/      Extra figures for the IEEE report
+  results/tables/      JSON results for every experiment
+  docs/                Setup, pipeline, attacks, defense documentation
+  report/              IEEE report tex and pdf
+
+Key results:
+  ResNet 18 baseline: 99.56 percent clean accuracy
+  EfficientNet B0 baseline: 99.88 percent clean accuracy
+  Under PGD eps=0.01: ResNet drops to 8.5 percent
+  After adversarial training: recovers to 46.6 percent, only 0.6 percent clean accuracy lost
+  Black box transfer at eps=0.01: target model holds around 60 to 70 percent
+
+See report/report.pdf for full experimental results, discussion, and limitations.

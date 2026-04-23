@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# DeepfakeDataset class and image transforms
+
 import os
 from PIL import Image
 from torch.utils.data import Dataset

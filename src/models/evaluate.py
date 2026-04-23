@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# Evaluate a model on a dataloader and print metrics
+
 import torch
 from tqdm import tqdm
 from src.utils.metrics import compute_metrics

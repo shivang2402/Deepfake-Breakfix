@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# Grad CAM heatmap generation and grid plotting
+
 """Grad-CAM heatmaps to see where the model is looking."""
 import torch
 import numpy as np

@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# Build train, valid, test DataLoaders
+
 from torch.utils.data import DataLoader
 from .dataset import DeepfakeDataset, get_transforms
 

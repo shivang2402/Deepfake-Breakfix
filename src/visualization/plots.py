@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# Degradation curves and baseline vs robust comparison plots
+
 """Plotting degradation curves and comparison charts."""
 import json
 import matplotlib.pyplot as plt

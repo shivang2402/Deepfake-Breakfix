@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# Standard training loop with early stopping
+
 import os
 import torch
 import torch.nn as nn

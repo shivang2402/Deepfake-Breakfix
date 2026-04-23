@@ -2,6 +2,17 @@
 CLAUDE.md
 .claude/
 
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+
+# Report and presentation (local only, root level only)
+/report/
+/presentation/
+
 # Python
 __pycache__/
 *.py[cod]

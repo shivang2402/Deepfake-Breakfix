@@ -1,9 +1,17 @@
-"""Generate architecture and pipeline diagrams."""
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# Build architecture and pipeline diagrams with matplotlib
+
+# standard library
+import os
+import sys
+
+# third party
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import os
 
 
+# draw a rounded rectangle box with centered text
 def make_box(ax, x, y, w, h, text, color="#E3F2FD", fontsize=9, border="#333"):
     rect = patches.FancyBboxPatch(
         (x, y), w, h, boxstyle="round,pad=0.12",
@@ -408,7 +416,9 @@ def draw_adversarial_training_flow(path):
     print(f"Saved: {path}")
 
 
-def main():
+# main function
+def main(argv):
+    # build all diagrams and save to results/diagrams/
     os.makedirs("results/diagrams", exist_ok=True)
     draw_pipeline_overview("results/diagrams/pipeline_overview.png")
     draw_resnet_arch("results/diagrams/resnet18_architecture.png")
@@ -417,7 +427,8 @@ def main():
     draw_defense_comparison("results/diagrams/defense_comparison.png")
     draw_adversarial_training_flow("results/diagrams/adversarial_training_flow.png")
     print("\nAll diagrams generated in results/diagrams/")
+    return
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)

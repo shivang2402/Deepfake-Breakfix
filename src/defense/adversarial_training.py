@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# Adversarial training loop (50 percent clean + 50 percent PGD per batch)
+
 """Adversarial training — mix clean and adversarial examples during training."""
 import os
 import torch

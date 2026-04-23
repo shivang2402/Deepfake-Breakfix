@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# EOT PGD: adversarial attack robust to JPEG and resize transforms
+
 """EOT (Expectation over Transformation) attack.
 Generates adversarial perturbations that survive JPEG compression and resizing.
 """

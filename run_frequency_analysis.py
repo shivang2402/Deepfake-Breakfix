@@ -1,19 +1,36 @@
-"""Run frequency-domain analysis on the dataset."""
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# Compute and plot frequency spectrum comparison of real vs fake faces
+
+# standard library
 import os
+import sys
+
+# third party
 import torch
+
+# local
 from src.utils.config import load_config
 from src.data.dataloader import create_dataloaders
 from src.attacks.frequency import analyze_frequency, plot_frequency_comparison
 
 
-def main():
-    config = load_config("configs/default.yaml")
-
+# pick the best available device
+def get_device():
     if torch.cuda.is_available():
-        device = torch.device("cuda")
-    else:
-        device = torch.device("cpu")
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
 
+
+# main function
+def main(argv):
+    # load config and pick device
+    config = load_config("configs/default.yaml")
+    device = get_device()
+
+    # build test loader
     loaders = create_dataloaders(
         data_dir="data/real-vs-fake",
         image_size=config["data"]["image_size"],
@@ -21,6 +38,7 @@ def main():
         num_workers=config["data"]["num_workers"],
     )
 
+    # compute average FFT spectrum of real vs fake and save plot
     print("Analyzing frequency spectra...")
     fake_avg, real_avg = analyze_frequency(loaders["test"], device, n_samples=1000)
 
@@ -28,6 +46,8 @@ def main():
     plot_frequency_comparison(fake_avg, real_avg, "results/plots/frequency_analysis.png")
     print("Done!")
 
+    return
+
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)

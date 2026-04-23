@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# Carlini and Wagner L2 attack wrapper
+
 """Carlini & Wagner L2 attack wrapper using torchattacks."""
 import torchattacks
 

@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# 2D FFT radial spectrum analysis of real vs fake images
+
 """Frequency-domain analysis of real vs fake images."""
 import numpy as np
 import torch

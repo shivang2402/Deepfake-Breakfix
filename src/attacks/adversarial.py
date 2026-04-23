@@ -1,3 +1,7 @@
+# Shivang Patel
+# CS 5330, Final Project: Deepfake Breakfix
+# FGSM and PGD attack wrappers using torchattacks
+
 """Adversarial attacks using torchattacks — FGSM and PGD."""
 import torch
 import torchattacks
